@@ -2,12 +2,14 @@ from global_var import db
 from typing import *
 from hashlib import md5
 
+from utils.jsonify_helper import JsonifyModel
 
-class Management(db.Model):
+
+class Management(JsonifyModel):
     __tablename__ = 'management'
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    username = db.Column(db.VARCHAR(20), nullable=False)
-    password = db.Column(db.VARCHAR(32), nullable=False)
+    username = db.Column(db.String(20), nullable=False, unique=True)
+    password = db.Column(db.String(32), nullable=False)
 
     @classmethod
     def try_login(cls, username: str, password: str) -> Union[int, bool]:
