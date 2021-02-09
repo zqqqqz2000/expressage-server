@@ -7,6 +7,7 @@ from utils.jsonify_helper import JsonifyModel
 class Warehouse(JsonifyModel):
     __tablename__ = 'warehouse'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(20), nullable=False)
     lng = db.Column(db.Float, nullable=False)
     lat = db.Column(db.Float, nullable=False)
     location = db.Column(db.String(120))
