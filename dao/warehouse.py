@@ -7,14 +7,15 @@ from utils.jsonify_helper import JsonifyModel
 class Warehouse(JsonifyModel):
     __tablename__ = 'warehouse'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(20), nullable=False)
+    name = db.Column(db.String(20), nullable=False, unique=True)
     lng = db.Column(db.Float, nullable=False)
     lat = db.Column(db.Float, nullable=False)
     location = db.Column(db.String(120))
+    specific_location = db.Column(db.String(120))
 
     @classmethod
     def get_page(cls, page: int, per_page: int) -> List['Warehouse']:
-        return cls.query.paginate(page, per_page=per_page)
+        return cls.query.paginate(page, per_page=per_page, error_out=False).items
 
     @classmethod
     def len(cls):

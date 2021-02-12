@@ -14,7 +14,7 @@ class JsonifyModel(db.Model):
         }
 
     def _is_inner_name(self, attr_name: str):
-        inner = {'query_class', 'query'}
+        inner = {'query_class', 'query', 'metadata'}
         if attr_name in inner or attr_name.startswith('_'):
             return False
         attr = self.__getattribute__(attr_name)

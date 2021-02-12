@@ -24,6 +24,6 @@ def with_token(func: Callable[[Optional[Dict]], Any]):
             return {'success': False, 'info': '登录信息失效，清重新登录'}
         return func(token_data)
 
-    inner_func.__name__ = func.__name__ + '_inner'
+    inner_func.__name__ = func.__name__
 
     return inner_func

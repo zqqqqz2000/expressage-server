@@ -1,9 +1,12 @@
+from typing import *
+
+from flask import request, Blueprint
+from sqlalchemy.exc import DatabaseError
+
 from dao.management import Management
 from dao.warehouse import Warehouse
-from utils.token import generate_token, with_token
-from flask import request, Blueprint
-from typing import *
 from global_var import db
+from utils.token import generate_token, with_token
 
 management = Blueprint("management", __name__, url_prefix='/management')
 
@@ -35,9 +38,21 @@ def get_warehouses(_):
 @with_token
 def add_warehouse(_):
     data: Dict = request.get_json(silent=True)
+    name: str = data['name']
     location: str = data['location']
     lng: float = data['lng']
     lat: float = data['lat']
-    warehouse = Warehouse(location=location, lng=lng, lat=lat)
+    specific_location: str = data['specific_location']
+    warehouse = Warehouse(
+        location=location,
+        lng=lng,
+        lat=lat,
+        name=name,
+        specific_location=specific_location
+    )
     db.session.add(warehouse)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except DatabaseError:
+        return {'success': False, 'info': '仓库名称可能重复或未知的数据库错误'}
+    return {'success': True, 'info': '添加仓库成功'}
