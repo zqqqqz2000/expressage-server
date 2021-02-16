@@ -1,3 +1,4 @@
+from dao.wi import WI
 from global_var import db
 from typing import *
 
@@ -20,3 +21,15 @@ class Warehouse(JsonifyModel):
     @classmethod
     def len(cls):
         return cls.query.count()
+
+    @classmethod
+    def get_inventoried_warehouse(cls, iid: int) -> List[Tuple['Warehouse', int]]:
+        wi_query = db.session.query(
+            WI.wid,
+            WI.number.label('number')
+        ).filter_by(iid=iid).subquery()
+        warehouse_with_num = db.session.query(
+            cls,
+            wi_query.c.number
+        ).join(wi_query, isouter=True).all()
+        return [(d[0], 0 if not d[1] else d[1]) for d in warehouse_with_num]
