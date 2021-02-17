@@ -3,6 +3,7 @@ from flask import jsonify
 from flask import request, Blueprint
 from sqlalchemy.exc import DatabaseError
 
+from dao.deliveryman import Deliveryman
 from dao.inventory import Inventory
 from dao.management import Management
 from dao.warehouse import Warehouse
@@ -152,3 +153,54 @@ def change_inventory_num(_):
     except Exception:
         return {'success': False, 'info': '库存数量变更失败，请勿使最终库存为负'}
     return {'success': True, 'info': '库存数量变更成功'}
+
+
+@management.route('add_deliveryman', methods=['POST'])
+@with_token
+def add_deliveryman(_):
+    data: Dict = request.get_json(silent=True)
+    username: str = data['username']
+    password: str = data['password']
+    name: str = data['name']
+    deliveryman = Deliveryman(
+        username=username,
+        password=password,
+        name=name
+    )
+    db.session.add(deliveryman)
+    try:
+        db.session.commit()
+    except DatabaseError:
+        return {'success': False, 'info': '新增快递员失败，请检查用户名是否重复'}
+    return {'success': True, 'info': '新增快递员成功'}
+
+
+@management.route('/get_deliveryman', methods=['POST'])
+@with_token
+def get_deliveryman(_):
+    data: Dict = request.get_json(silent=True)
+    page = data['page']
+    per_page = data['per_page']
+    inventories: List[Deliveryman] = Deliveryman.get_page(page, per_page)
+    total_column = Deliveryman.len()
+    total_page: int = total_column // per_page + bool(total_column % per_page)
+    return {
+        'total_page': total_page,
+        'columns': [
+            res.jsonify(['id', 'name', 'username', 'lng', 'lat'])
+            for res in inventories
+        ]
+    }
+
+
+@management.route('/remove_deliveryman', methods=['POST'])
+@with_token
+def remove_deliveryman(_):
+    data: Dict = request.get_json(silent=True)
+    id_: int = data['id']
+    query_res: Optional[Warehouse] = Deliveryman.query.filter_by(id=id_).first()
+    if not query_res:
+        return {'success': False, 'info': '删除失败，该快递员不存在或已被删除'}
+    db.session.delete(query_res)
+    db.session.commit()
+    return {'success': True, 'info': '成功删除快递员'}
