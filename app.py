@@ -2,8 +2,8 @@ from flask import Flask
 import global_var
 from flask_cors import CORS
 import config
+from apis.deliveryman import deliveryman
 from apis.management import management
-from dao.management import Management
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = config.SQLALCHEMY_DATABASE_URI
@@ -20,5 +20,6 @@ CORS(app)
 #     global_var.db.session.commit()
 
 app.register_blueprint(management)
+app.register_blueprint(deliveryman)
 if __name__ == '__main__':
-    app.run()
+    app.run('0.0.0.0')

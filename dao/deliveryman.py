@@ -14,7 +14,7 @@ class Deliveryman(JsonifyModel):
     lat = db.Column(db.Float, nullable=True)
 
     @classmethod
-    def try_login(cls, username: str, password: str) -> Union[int, bool]:
+    def try_login(cls, username: str, password: str) -> Union[Tuple[int, str], bool]:
         m = md5()
         m.update(password.encode())
         pass_with_hash = m.hexdigest()
@@ -25,7 +25,7 @@ class Deliveryman(JsonifyModel):
         if query_res is None:
             return False
         else:
-            return query_res.id
+            return query_res.id, query_res.name
 
     @classmethod
     def get_page(cls, page: int, per_page: int) -> List['Deliveryman']:
@@ -34,3 +34,13 @@ class Deliveryman(JsonifyModel):
     @classmethod
     def len(cls):
         return cls.query.count()
+
+    @classmethod
+    def update_position(cls, did: int, lng: float, lat: float) -> bool:
+        query_res: Deliveryman = cls.query.filter_by(id=did).first()
+        if not query_res:
+            return False
+        query_res.lat = lat
+        query_res.lng = lng
+        db.session.commit()
+        return True

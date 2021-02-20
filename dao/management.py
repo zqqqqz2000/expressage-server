@@ -12,7 +12,7 @@ class Management(JsonifyModel):
     password = db.Column(db.String(32), nullable=False)
 
     @classmethod
-    def try_login(cls, username: str, password: str) -> Union[int, bool]:
+    def try_login(cls, username: str, password: str) -> Union[Tuple[int, str], bool]:
         m = md5()
         m.update(password.encode())
         pass_with_hash = m.hexdigest()
@@ -23,4 +23,4 @@ class Management(JsonifyModel):
         if query_res is None:
             return False
         else:
-            return query_res.id
+            return query_res.id, query_res.username

@@ -1,3 +1,4 @@
+from hashlib import md5
 from typing import *
 from flask import jsonify
 from flask import request, Blueprint
@@ -8,7 +9,7 @@ from dao.inventory import Inventory
 from dao.management import Management
 from dao.warehouse import Warehouse
 from global_var import db
-from utils.token import generate_token, with_token
+from utils.token import generate_token, with_token, check_token_role
 
 management = Blueprint("management", __name__, url_prefix='/management')
 
@@ -21,11 +22,16 @@ def login():
     login_res = Management.try_login(username, password)
     if login_res is False:
         return {'success': False, 'info': '用户名或密码错误'}
-    return {'success': True, 'token': generate_token({'uid': str(login_res)}), 'info': '登录成功'}
+    uid, username = login_res
+    return {
+        'success': True,
+        'token': generate_token({'uid': str(uid), 'role': 'management'}),
+        'info': f'登录成功，欢迎你，{username}'
+    }
 
 
 @management.route("/get_warehouses", methods=['POST'])
-@with_token
+@check_token_role('management')
 def get_warehouses(_):
     data: Dict = request.get_json(silent=True)
     page: int = data['page']
@@ -37,7 +43,7 @@ def get_warehouses(_):
 
 
 @management.route("/add_warehouse", methods=['POST'])
-@with_token
+@check_token_role('management')
 def add_warehouse(_):
     data: Dict = request.get_json(silent=True)
     name: str = data['name']
@@ -61,7 +67,7 @@ def add_warehouse(_):
 
 
 @management.route('/remove_warehouse', methods=['POST'])
-@with_token
+@check_token_role('management')
 def remove_warehouse(_):
     data: Dict = request.get_json(silent=True)
     id_: int = data['id']
@@ -74,7 +80,7 @@ def remove_warehouse(_):
 
 
 @management.route('/add_inventory', methods=['POST'])
-@with_token
+@check_token_role('management')
 def add_inventory(_):
     data: Dict = request.get_json(silent=True)
     name: str = data['name']
@@ -89,7 +95,7 @@ def add_inventory(_):
 
 
 @management.route('/get_inventory', methods=['POST'])
-@with_token
+@check_token_role('management')
 def get_inventory(_):
     data: Dict = request.get_json(silent=True)
     page = data['page']
@@ -112,7 +118,7 @@ def get_inventory(_):
 
 
 @management.route('remove_inventory', methods=['POST'])
-@with_token
+@check_token_role('management')
 def remove_inventory(_):
     data: Dict = request.get_json(silent=True)
     id_ = data['id']
@@ -125,7 +131,7 @@ def remove_inventory(_):
 
 
 @management.route('get_inventory_in_warehouse', methods=['POST'])
-@with_token
+@check_token_role('management')
 def get_inventory_in_warehouse(_):
     data: Dict = request.get_json(silent=True)
     id_ = data['id']
@@ -142,7 +148,7 @@ def get_inventory_in_warehouse(_):
 
 
 @management.route('change_inventory_num', methods=['POST'])
-@with_token
+@check_token_role('management')
 def change_inventory_num(_):
     data: Dict = request.get_json(silent=True)
     iid: int = data['iid']
@@ -156,11 +162,11 @@ def change_inventory_num(_):
 
 
 @management.route('add_deliveryman', methods=['POST'])
-@with_token
+@check_token_role('management')
 def add_deliveryman(_):
     data: Dict = request.get_json(silent=True)
     username: str = data['username']
-    password: str = data['password']
+    password: str = md5(data['password'].encode()).hexdigest()
     name: str = data['name']
     deliveryman = Deliveryman(
         username=username,
@@ -176,7 +182,7 @@ def add_deliveryman(_):
 
 
 @management.route('/get_deliveryman', methods=['POST'])
-@with_token
+@check_token_role('management')
 def get_deliveryman(_):
     data: Dict = request.get_json(silent=True)
     page = data['page']
@@ -194,7 +200,7 @@ def get_deliveryman(_):
 
 
 @management.route('/remove_deliveryman', methods=['POST'])
-@with_token
+@check_token_role('management')
 def remove_deliveryman(_):
     data: Dict = request.get_json(silent=True)
     id_: int = data['id']
