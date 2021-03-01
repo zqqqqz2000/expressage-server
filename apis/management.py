@@ -110,7 +110,7 @@ def get_inventory(_):
                 'id': res[0].id,
                 'name': res[0].name,
                 'comment': res[0].comment,
-                'total_number': res[1]
+                'total_number': float(res[1])
             }
             for res in inventories
         ]
